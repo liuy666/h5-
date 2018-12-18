@@ -1,0 +1,146 @@
+export const appRoutes = [
+    {
+        path: '/',
+        name: 'indexpage',
+        meta: {
+            keepAlive: false // 是否需要缓存
+        },
+        component: () =>
+            import ('@/views/index/index-page.vue')
+    },
+    // {
+    //     path: '/',
+    //     name: 'index',
+    //     component: () =>
+    //         import ('@/views/home.vue')
+    // },
+    {
+        path: '/main',
+        name: 'main',
+        component: () =>
+            import ('@/views/Main.vue'),
+        children: [
+            // 景点资源
+            {
+                path: 'scenic-spot',
+                name: 'scenic-spot',
+                component: () =>
+                    import ('@/views/scenic-spot.vue')
+            },
+            // 路线资源
+            {
+                path: 'scenic-line',
+                name: 'scenic-line',
+                component: () =>
+                    import ('@/views/scenic-line.vue')
+            },
+            // 其他景区资源
+            {
+                path: 'scenic-resource/:type',
+                name: 'scenic-resource',
+                component: () =>
+                    import ('@/views/scenic-resource.vue')
+            },
+        ]
+    },
+    // 智能识别
+    {
+        path: '/recognize',
+        name: 'recognize',
+        component: () =>
+            import ('@/views/recognize.vue')
+    },
+    // 景点详情
+    {
+        path: '/scenic-point-detail',
+        name: 'scenic-point-detail',
+        component: () =>
+            import ('@/views/scenic-point-detail.vue')
+    },
+    // 新增反馈
+    {
+        path: '/feedback',
+        name: 'feedback',
+        component: () =>
+            import ('@/views/feedback.vue'),
+        meta: {
+            title: '反馈'
+        }
+    },
+    // 花草识别详情
+    {
+        path: '/recognize-detail',
+        name: 'recognize-detail',
+        component: () =>
+            import ('@/views/recognize-detail.vue'),
+        meta: {
+            title: '识别详情'
+        }
+    },
+    // 查看景区全景图
+    {
+        path: '/full-view',
+        name: 'full-view',
+        component: () =>
+            import ('@/views/full-view.vue'),
+        meta: {
+            title: '全景图'
+        }
+    },
+    // 消息列表
+    {
+        path: '/message-list',
+        name: 'message-list',
+        component: () =>
+            import ('@/views/message-list.vue'),
+        meta: {
+            title: '消息'
+        }
+    },
+    // 消息详情页
+    {
+        path: '/msg-detail/:msgId',
+        name: 'msg-detail',
+        component: () => import ('@/views/msg-detail.vue')
+    },
+    {
+        path: '*',
+        name: 'not-found',
+        meta: {
+            title: '404-页面找不到'
+        },
+        component: () => import ('@/views/404.vue')
+    }
+]
+
+const loginRoutes = [
+    {
+        path: '/login',
+        name: 'login',
+        component: () =>
+            import ('@/views/login/login.vue')
+    },
+    {
+        path: '/register',
+        name: 'register',
+        component: () =>
+            import ('@/views/login/register.vue')
+    },
+    {
+        path: '/forget',
+        name: 'forget',
+        component: () =>
+            import ('@/views/login/forget.vue')
+    },
+    {
+        path: '/reset',
+        name: 'reset',
+        component: () =>
+            import ('@/views/login/reset.vue')
+    }
+]
+
+export const routes = [
+    ...appRoutes,
+    ...loginRoutes
+];

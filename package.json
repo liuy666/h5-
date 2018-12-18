@@ -1,0 +1,45 @@
+{
+  "name": "daolan",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "npm run serve",
+    "serve": "vue-cli-service serve --open --inline=true --hot --port 8086",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "animate.css": "^3.7.0",
+    "axios": "^0.18.0",
+    "crypto-js": "^3.1.9-1",
+    "hammerjs": "^2.0.8",
+    "leaflet.chinatmsproviders": "^2.0.2",
+    "lodash": "^4.17.11",
+    "postcss-aspect-ratio-mini": "^0.0.2",
+    "postcss-import": "^12.0.0",
+    "postcss-preset-env": "^6.1.1",
+    "postcss-px-to-viewport": "^0.0.3",
+    "postcss-url": "^8.0.0",
+    "postcss-viewport-units": "^0.1.4",
+    "postcss-write-svg": "^3.0.1",
+    "vue": "^2.5.17",
+    "vue-amap": "^0.5.8",
+    "vue-awesome-swiper": "^3.1.3",
+    "vue-router": "^3.0.1",
+    "vue-touch": "^2.0.0-beta.4",
+    "vuex": "^3.0.1",
+    "vux": "^2.9.2"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "^3.0.5",
+    "@vue/cli-plugin-eslint": "^3.0.5",
+    "@vue/cli-service": "^3.0.5",
+    "cssnano": "^4.1.7",
+    "cssnano-preset-advanced": "^4.0.5",
+    "less": "^2.7.3",
+    "less-loader": "^4.1.0",
+    "vue-loader": "^14.2.2",
+    "vue-template-compiler": "^2.5.17",
+    "vux-loader": "^1.2.9"
+  }
+}
