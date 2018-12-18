@@ -62,7 +62,7 @@ export default {
                 }
                 return
             }
-            const { data } = await this.$axios.post(`${this.$base}/hqyatu-navigator/app/updatePwd`, form)
+            const { data } = await this.$axios.post(`${this.$base}/app/updatePwd`, form)
             if (data.code === 0) {
                 this.toast = {
                     show: true,

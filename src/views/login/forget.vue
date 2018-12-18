@@ -58,7 +58,7 @@ export default {
             const mobile = this.forgetForm.mobile
             if (!this.validatePhone(mobile)) return
             this.forgetFormList[1].disabled = true
-            const res = await this.$http.get(`${this.$base}/hqyatu-navigator/message/sys/sendVerification?mobile=${mobile}`)
+            const res = await this.$http.get(`${this.$base}/message/sys/sendVerification?mobile=${mobile}`)
             if (res) this.setTime()
         },
         setTime () {
@@ -98,7 +98,7 @@ export default {
         async 'forgetForm.verifyCode' (val) {
             if (val.length === 6) {
                 const params = this.forgetForm
-                const { data } = await this.$axios.get(`${this.$base}/hqyatu-navigator/message/sys/validMessageCode`, { params })
+                const { data } = await this.$axios.get(`${this.$base}/message/sys/validMessageCode`, { params })
                 if (data.code === 0) {
                     this.$router.push({
                         path: '/reset',

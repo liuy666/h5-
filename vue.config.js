@@ -17,7 +17,7 @@ module.exports = {
         port: 8086,
         proxy: {
             '/api': {
-                target: 'https://192.168.10.103:8076',
+                target: 'https://192.168.10.103:8076/hqyatu-navigator',
                 changeOrigin: true,
                 pathRewrite: {
                     '^/api': '/'
