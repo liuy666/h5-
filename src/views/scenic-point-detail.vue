@@ -1,4 +1,12 @@
 <style lang="less">
+    @keyframes rotateimg {
+        0% {
+            transform: rotateZ(0deg);
+        }
+        100% {
+            transform: rotateZ(360deg);
+        }
+    }
     #scenic-point-detail{
         padding: 30px;
         
@@ -36,7 +44,7 @@
         }
 
         .weui-progress__bar{
-            background:rgba(254,235,226,1);
+            background:rgba(254,226,213,1);
             height: 6px;
             border-radius:4px;
         }
@@ -50,6 +58,19 @@
                 width: 112px;
                 height: 112px;
                 position: relative;
+                .animateImg{
+                    animation-name: rotateimg;
+                    animation-duration: 30s;
+                    animation-timing-function: linear;
+                    animation-iteration-count: infinite;
+                    //animation-play-state: paused;
+                }
+                .p_start {
+                    animation-play-state: running;
+                }
+                .p_stop {
+                    animation-play-state: paused;
+                }
                 .iwrap {
                     width: 112px;
                     height: 112px;
@@ -98,11 +119,11 @@
                         width: 32px;
                         height: 32px;
                         border-radius: 50%;
-                        background: #fff;
                         position: absolute;
                         left: -16px;
-                        top: -2px;
-                        box-shadow:0px 1px 3px 0px rgba(129,28,0,0.15);
+                        top: 0;
+                        background:rgba(254,81,0,1);
+                        box-shadow:0px 1px 3px 0px rgba(254,81,0,0.27);
                     }
                 }
             }
@@ -123,7 +144,8 @@
                 padding: 0;
                 right: 20px;
                 bottom: 36px;
-                padding: 0 20px;
+                box-sizing: border-box;
+                padding: 4px 20px 0 20px;
                 border-radius: 20px;
                 left: auto;
                 font-size: 28px;
@@ -179,6 +201,15 @@
                             height: 100%;
                         }
                     }
+                    .point-playing{
+                        width: 100px;
+                        height: 100px;
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        background: url("../assets/images/playing_detail.gif") no-repeat center center;
+                        background-size: 36px 32px;
+                    }
                     div.ignore {
                         border: 2px solid #fff;
                     }
@@ -210,9 +241,10 @@
     <div id="scenic-point-detail">
         <loading :show="isShowLoading" :text="loadText" position="absolute"></loading>
         <toast class="short" v-model="isTips" type="cancel" :text="tipsText" :is-show-mask="true"></toast>
+        <toast class="long" v-model="isTips3" type="text" :text="tipsText3" :is-show-mask="true"></toast>
         <section class="audio-area">
             <div class="audio-area-img">
-                <img :src="pointImg" style="width:100%;height:100%;border-radius:100%;" />
+                <img :src="pointImg" style="width:100%;height:100%;border-radius:100%;" class="scenicImg" />
                 <!-- 播放图标-暂停中状态 -->
                 <v-touch class="iwrap" v-show="!isPlayed" v-on:tap="playAudio()">
                     <div class="control img-16-26">
@@ -258,6 +290,7 @@
                 <v-touch tag="li" v-for="(item,index) in pointList" :key="index" @tap="changePointInfo(index,$event)">
                     <div class="point-list-img ignore" :class="item.resource_id == currentPointId ? 'orange' : ''"><img :src="item.url"/></div>
                     <div class="point-list-name" :class="item.resource_id == currentPointId ? 'current' : ''" >{{item.name}}</div>
+                    <div v-show="item.resource_id == playingPointId && audioPlay" class="point-playing"></div>
                 </v-touch>
             </ul>
         </section>
@@ -276,11 +309,9 @@ export default {
     },
     data() {
         const cPoint = JSON.parse(sessionStorage.getItem("pointList")).filter(item => item.resource_id == sessionStorage.getItem("mapClickPointId"))[0];
-        const cPoint_play = JSON.parse(sessionStorage.getItem("currentPoint"));
         return {
             currentIndex: 0,
             showPoint: cPoint,
-            playingPoint : cPoint_play,
             currentPointId: cPoint.resource_id,
             pointImg: cPoint.url,
             pointName: cPoint.name,
@@ -299,12 +330,19 @@ export default {
             isShowLoading : false,
             loadText:'',
             isTips:false,
+            isTips3:false,
             tipsText: '请求失败',
-            bl:0
+            tipsText3:'',
+            bl:0,
+            playingPointId : JSON.parse(sessionStorage.getItem("currentPoint")).resource_id, //正在播放音频的景点id
+            audioPlay: false //音频存在且音频正在播放状态时为true
         }
     },
     watch : {
         audioPercent (val) {
+            //设置进度条、圆圈、当前时长的显示状态
+            //当播放音频的景点与展示的景点一致 进度条等状态跟着播放进度走
+            //不一致 进度条等状态初始化为0
             if(val>0){
                 if(document.querySelector(".main-audio").dataset.id == this.showPoint.resource_id){
                     document.querySelector(".circle").style.left = "calc("+ val +"% - 8px)";
@@ -323,15 +361,31 @@ export default {
                     this.currentTimeStr = "0:00";
                     this.progress = 0;
                 }
+            }else{
+                document.querySelector(".circle").style.left = "-8px";
+                this.currentTimeStr = "0:00";
+                this.progress = 0;
+                if(this.isLastOne){
+                    //document.querySelector('.animateImg').style.animationPlayState = 'paused';
+                    this.animatePause();
+                }
             }
         },
+        //播放最终结束（未自动时单音频播放完成 || 自动时整个播放列表播放完成）
         isStop (val) {
             if (val) {
                 this.isPlayed = false;
+                this.audioPlay = false;
+                if(!sessionStorage.getItem('isAuto') || sessionStorage.getItem('isAuto') == "false"){
+                    //document.querySelector('.animateImg').style.animationPlayState = 'paused';
+                    this.animatePause();
+                }
             }
         },
-        isAutoPlay (val) {
+        //自动播放
+        isAutoPlay (val) { 
             if (val) {
+                //设置应该显示的景点信息 
                 this.showPoint = this.$store.state.app.nextMessage.nextPoint;
                 this.currentPointId = this.showPoint.resource_id;
                 this.pointImg = this.showPoint.url;
@@ -339,9 +393,18 @@ export default {
                 this.pointCaption = this.showPoint.commentary;
                 this.currentTimeStr = "0:00";
                 this.getCurrentImgList();
+
+                
                 this.START_NEW_INTERVAL();
                 this.isPlayed = true;
-
+                this.audioPlay = true;
+                //document.querySelector('.animateImg').style.animationPlayState = 'running';
+                this.running();
+                //更新session信息
+                sessionStorage.setItem("currentPoint",JSON.stringify(this.showPoint));
+                sessionStorage.setItem("mapClickPointId",this.showPoint.resource_id);
+                sessionStorage.setItem("showPoint",JSON.stringify(this.showPoint));
+                this.playingPointId = this.showPoint.resource_id;
                 //设置滚动位置
                 let ind = this.pointList.findIndex(item => item.resource_id === this.showPoint.resource_id)
                 document.querySelector(".point-list").scrollLeft = 15 + this.bl * 96 * ind;
@@ -363,11 +426,13 @@ export default {
             audioPercent: state => state.app.percent,
             isStop: state => state.app.isStop, // 监听是否当前是否播放完毕
             isAutoPlay: state => state.app.isAutoPlay, // 监听是否开始连播下一个音频
-            hasGetTotal: state => state.app.hasGetTotal
+            hasGetTotal: state => state.app.hasGetTotal,
+            isLastOne: state => state.app.isLastOne
         })
     },
     methods : {
         ...mapMutations([
+            'SET_PERCENT',
             'START_PLAY',
             'START_NEW_INTERVAL', // 开始新的定时器
             'CLEAR_CURRENT_INTERVAL' //清除定时器
@@ -398,6 +463,8 @@ export default {
             }
             audioDom.onplay = (e) => {
                 this.totalTime = e.target.duration;
+                let m = (this.totalTime%60).toFixed(0) < 10 ? '0'+(this.totalTime%60).toFixed(0) : (this.totalTime%60).toFixed(0);
+                this.totalTimeStr = Math.floor(this.totalTime/60) + ":" + m;
             }
         },
         //播放
@@ -413,27 +480,36 @@ export default {
             }
             //未播放状态或者播放景点与展示景点不一致，重新创建音频
             else{ 
+                document.querySelector(".circle").style.left = "-8px";
+                this.progress = 0;
                 this.isPlayed = true;
+                this.currentTimeStr = '0:00';
                 let src = this.showPoint.guideUrl,
                     id = this.showPoint.resource_id;
                 this.START_PLAY({src, id}); // 开始播放
                 this.START_NEW_INTERVAL(); // 开始定时器
                 sessionStorage.setItem("currentPoint",JSON.stringify(this.showPoint));
                 sessionStorage.setItem("mapClickPointId",this.showPoint.resource_id);
+                this.playingPointId = this.showPoint.resource_id;
             }
-            
+            //document.querySelector('.animateImg').style.animationPlayState = 'running';
+            this.running();
+            this.audioPlay = true;
         },
         pauseAudio() {
             this.CLEAR_CURRENT_INTERVAL(); // 通知App页清除定时器
             document.querySelector('.main-audio').pause(); // 直接暂停音频
             this.isPlayed = false;
+            //document.querySelector('.animateImg').style.animationPlayState = 'paused';
+            this.animatePause();
+            this.audioPlay = false;
         },
         //获取当前景点轮播图
         async getCurrentImgList() {
             this.isShowLoading = true;
             let _self = this;
             this.imageList = [];
-            const imgList = await this.$http.get(this.$base + '/hqyatu-navigator/app/resource/getSowingPictures/'+ _self.currentPointId);
+            const imgList = await this.$http.get(this.$base + '/app/resource/getSowingPictures/'+ _self.currentPointId);
             if(!imgList){
                 this.isShowLoading = false;
                 this.isTips = true;
@@ -446,7 +522,7 @@ export default {
                     let title = (i+1)+'/'+len;
                     let obj = {
                         url : 'javascript:',
-                        img : v,
+                        img : v ? 'https' + v.slice(4) : v,
                         title : title
                     }
                     list.push(obj);
@@ -464,29 +540,58 @@ export default {
         },
         //切换景点
         changePointInfo (index,ev) {
-            document.querySelector(".circle").style.left = "- 8px";
-            this.progress = 0;
-
             let newPointInfo = this.pointList[index];
             this.showPoint = newPointInfo;
             this.currentPointId = newPointInfo.resource_id;
             this.pointImg = newPointInfo.url;
             this.pointName = newPointInfo.name;
             this.pointCaption = newPointInfo.commentary;
-            this.currentTimeStr = "0:00";
+            
             this.getCurrentImgList();
             this.setAudio();
             sessionStorage.setItem("showPoint",JSON.stringify(newPointInfo));
 
-            if(document.querySelector(".main-audio")){
+            if(document.querySelector(".main-audio") ){
                 if(document.querySelector(".main-audio").dataset.id != this.showPoint.resource_id){
                     this.isPlayed = false;
+                    document.querySelector(".circle").style.left = "-8px";
+                    this.progress = 0;
+                    this.currentTimeStr = "0:00";
+                    //document.querySelector('.animateImg').style.animationPlayState = 'paused';
+                    this.animatePause();
                 }else{
-                    this.isPlayed = true;
+                    if(!document.querySelector(".main-audio").paused){
+                        this.isPlayed = true;
+                        //document.querySelector('.animateImg').style.animationPlayState = 'running';
+                        this.running();
+                    }else{
+                        this.isPlayed = false;
+                    }
+                    document.querySelector(".circle").style.left = "calc("+ this.audioPercent +"% - 8px)";
+                    this.progress = this.audioPercent;
+                    let cf = Math.floor(this.currentTime/60);
+                    let cm = (this.currentTime%60).toFixed(0) < 10 ? '0'+(this.currentTime%60).toFixed(0) : (this.currentTime%60).toFixed(0);
+                    this.currentTimeStr = cf + ":" + cm;
                 }
+                
+                this.audioPlay = !document.querySelector(".main-audio").paused ? true : false;
+                
             }else{
                 this.isPlayed = false;
+                document.querySelector(".circle").style.left = "-8px";
+                this.progress = 0;
+                this.currentTimeStr = "0:00";
+                //document.querySelector('.animateImg').style.animationPlayState = 'paused';
+                this.animatePause();
             }
+        },
+        running () {
+            //document.querySelector(".animateImg").classList.remove("p_stop")
+            document.querySelector(".scenicImg").classList.add("animateImg");
+        },
+        animatePause () {
+            document.querySelector(".scenicImg").classList.remove('animateImg');
+            //document.querySelector(".animateImg").classList.add("p_stop");
         }
     },
     created() {
@@ -505,40 +610,74 @@ export default {
         const fromRouteName = this.$store.state.app.fromRouteName_detail;
         if(fromRouteName != 'scenic-point-detail'){
             this.showPoint = JSON.parse(sessionStorage.getItem("showPoint"));
+            if(!this.showPoint) {
+                this.showPoint = JSON.parse(sessionStorage.getItem("pointList")).filter(item => item.resource_id == sessionStorage.getItem("mapClickPointId"))[0]
+            }
             this.currentPointId = this.showPoint.resource_id;
             this.pointImg = this.showPoint.url;
             this.pointName = this.showPoint.name;
             this.pointCaption = this.showPoint.commentary;
         }
         
-        let mainAudio = document.querySelector(".main-audio");
         //进入页面时，判断是否正在播放 且 播放的景点与展示的景点是否一致
         //如果一致    初始化播放状态、总时长，总时长通过session获取 因为此时正在播放的音频的总时长已经准确的存入了session中
         //如果不一致  播放状态设置为暂停，总时长用过自己创建一个audio来获取并展示
+        let mainAudio = document.querySelector(".main-audio");
         if(mainAudio && mainAudio.dataset.id == this.showPoint.resource_id){
             if(mainAudio.paused) { 
                 this.isPlayed = false;
+                this.audioPlay = false;
             }else{
                 this.isPlayed = true;
+                this.audioPlay = true;
+                //document.querySelector('.animateImg').style.animationPlayState = 'running';
+                this.running();
             }
             this.totalTime = sessionStorage.getItem("totalTime");
             let m = (this.totalTime%60).toFixed(0) < 10 ? '0'+(this.totalTime%60).toFixed(0) : (this.totalTime%60).toFixed(0);
             this.totalTimeStr = Math.floor(this.totalTime/60) + ":" + m;
+
+            this.currentTime = document.querySelector(".main-audio").currentTime;
+            let cf = Math.floor(this.currentTime/60);
+            let cm = (this.currentTime%60).toFixed(0) < 10 ? '0'+(this.currentTime%60).toFixed(0) : (this.currentTime%60).toFixed(0);
+            this.currentTimeStr = cf + ":" + cm;
+            this.progress = this.currentTime/this.totalTime*100;
+            document.querySelector(".circle").style.left = "calc("+this.progress+"% - 8px)";
+
         }else{
             this.isPlayed = false;
+            this.audioPlay = false;
             this.setAudio();
+            if(mainAudio && !mainAudio.paused){
+                this.audioPlay = true;
+            }
         }
 
         this.$nextTick(function(){
             let circle = document.querySelector(".circle");
             let flag = 0;
-            circle.addEventListener("touchstart",function(e){   
+            circle.addEventListener("touchstart",function(e){ 
+                if(self.progress == 0){
+                    self.isTips3 = true;
+                    self.tipsText3 = '在当前音频开始播放后才可以拖动哦~';
+                    return;
+                }
                 if(self.isPlayed){
                     self.isPlayed = false;
+                    document.querySelector(".main-audio").pause();
+                    self.CLEAR_CURRENT_INTERVAL();
                     flag = 1;
+                }else{
+                    self.isPlayed = false;
+                    self.CLEAR_CURRENT_INTERVAL();
                 }
+                //document.querySelector('.animateImg').style.animationPlayState = 'paused';
+                self.animatePause();
             })
             circle.addEventListener("touchmove",function(e){ 
+                if(self.progress == 0){
+                    return;
+                }
                 let x = e.changedTouches[0].clientX - this.parentElement.offsetLeft;
                 let xx = x < 0 ? 0 : x;
                 let total = this.parentElement.offsetWidth;
@@ -546,7 +685,7 @@ export default {
                 document.querySelector(".circle").style.left = (move - 8) + 'px';
                 
                 self.currentTime = self.totalTime * (move / total).toFixed(2);
-                document.querySelector('.detail-audio').currentTime = self.currentTime;
+                document.querySelector('.main-audio').currentTime = self.totalTime * (move / total).toFixed(2);
                 let cf = Math.floor(self.currentTime/60);
                 let cm = (self.currentTime%60).toFixed(0) < 10 ? '0'+(self.currentTime%60).toFixed(0) : (self.currentTime%60).toFixed(0);
                 if(cm == 60) {
@@ -555,18 +694,30 @@ export default {
                 }
                 self.currentTimeStr = cf + ":" + cm;
 
-                self.audioProgress = self.currentTime / self.totalTime * 100;
+                self.progress = self.currentTime / self.totalTime * 100;
+                self.SET_PERCENT(self.progress);
                 
             })
-            circle.addEventListener("touchend",function(e){   
+            circle.addEventListener("touchend",function(e){  
+                if(self.progress == 0){
+                    return;
+                }
                 if(flag == 1){
                     self.isPlayed = true;
+                    document.querySelector(".main-audio").play();
+                    self.START_NEW_INTERVAL();
                     flag = 0;
+                }else{
+                    self.isPlayed = true;
+                    self.audioPlay = true;
+                    self.START_NEW_INTERVAL();
                 }
+                //document.querySelector('.animateImg').style.animationPlayState = 'running';
+                self.running();
             })
         })
     },
-    beforeRouteLeave (to, from , next) { 
+    beforeRouteLeave (to, from , next) {
         this.$store.commit('SET_FROM_ROUTE_NAME', 'scenic-point-detail');
         next();
     }

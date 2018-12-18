@@ -1,9 +1,6 @@
 <template>
     <div id="app">
-        <keep-alive>
-            <router-view v-if="$route.meta.keepAlive"></router-view>
-        </keep-alive>
-        <router-view v-if="!$route.meta.keepAlive"></router-view>
+        <router-view />
     </div>
 </template>
 
@@ -33,41 +30,50 @@
             // 监听播放参数(src、id)  开始新的播放
             playParams(params) {
                 if (params) {
-                    const mainAudio = document.querySelector('.main-audio');
-                    const audioContainer = document.querySelector('#app');
-                    if (mainAudio) {
-                        clearInterval(this.timer);
-                        if (!mainAudio.paused) {
-                            mainAudio.pause();
-                        }
-                        audioContainer.removeChild(mainAudio);
-                        this.audioPercent = 0;
-                        this.timer = '';
-                    }
-                    let audioDom = document.createElement('audio');
-                    let sourceDom = document.createElement('source');
-                    sourceDom.type = 'audio/mpeg';
-                    sourceDom.src = params.src;
-                    audioDom.preload = 'auto';
-                    audioDom.dataset.id = params.id;
-                    audioDom.appendChild(sourceDom);
-                    audioDom.className = 'main-audio';
-                    audioDom.style.display = 'none';
-                    audioContainer.appendChild(audioDom);
-                    audioDom.load();
 
-                    audioDom.oncanplay = (e) => {
-                        let _audioDom = e.target;
-                        this.totalTime = _audioDom.duration;
-                        _audioDom.play();
-                        sessionStorage.setItem("totalTime",_audioDom.duration);
-                        this.NOTICE_STOP(false);
-                        this.NOTICE_AUTO_PLAY(false);
-                        this.SET_HAS_GET_TOTAL(true);
-                    }
-                    audioDom.onplay = (e) => {
+                    // 如果是扫码播放 则不在这里创建音频 ，只开启进度条
+                    if (!params.isQrCode) {
+                        const mainAudio = document.querySelector('.main-audio');
+                        const audioContainer = document.querySelector('#app');
+                        if (mainAudio) { // 当前正在播放时 切换了音频
+                            clearInterval(this.timer);
+                            if (!mainAudio.paused) {
+                                mainAudio.pause();
+                            }
+                            audioContainer.removeChild(mainAudio);
+                            this.audioPercent = 0;
+                            this.SET_PERCENT(0);
+                            this.timer = '';
+                        }
+                        let audioDom = document.createElement('audio');
+                        let sourceDom = document.createElement('source');
+                        sourceDom.type = 'audio/mpeg';
+                        sourceDom.src = params.src;
+                        audioDom.preload = 'auto';
+                        audioDom.dataset.id = params.id;
+                        audioDom.appendChild(sourceDom);
+                        audioDom.className = 'main-audio';
+                        audioDom.style.display = 'none';
+                        audioContainer.appendChild(audioDom);
+                        audioDom.load();
+
+                        audioDom.oncanplay = (e) => {
+                            let _audioDom = e.target;
+                            this.totalTime = _audioDom.duration;
+                            _audioDom.play();
+                            sessionStorage.setItem("totalTime",_audioDom.duration);
+                            this.NOTICE_STOP(false); // 通知是否结束播放 -- 否
+                            this.NOTICE_AUTO_PLAY(false); // 通知是否开始连播 -- 否
+                            this.SET_HAS_GET_TOTAL(true);
+                            // 添加次数统计
+                            this.countPlayTimes(JSON.parse(sessionStorage.getItem('currentScenic')).scenery_id, params.id);
+                        }
+                        audioDom.onplay = (e) => {
+                            this.changeProgress();
+                        }
+                    } else {
                         this.changeProgress();
-                    }
+                    }   
                 }
             },
             // 监听播放状态 及时清除定时器
@@ -82,10 +88,10 @@
                 if (percent >= 100) {
                     const currentAudio = document.querySelector('.main-audio');
 
-                    // 通知地图页 停止icon 关闭弹窗 更改播放按钮状态
+                    // 通知地图页 更换icon图标/关闭弹窗/更改播放按钮状态
                     this.NOTICE_STOP(true);
 
-                    if (!currentAudio.paused || !currentAudio.ended) {
+                    if (!currentAudio.paused || !currentAudio.ended) { // 如果当前音频还有最后一点点没播完则直接停止 针对获取的总时长比实际时长短一点点的问题
                         currentAudio.pause();
                     }
                     this.audioPercent = 0;
@@ -95,14 +101,13 @@
                     let currentId = currentAudio.dataset.id;
                     const app = document.querySelector('#app');
                     app.removeChild(currentAudio);
-                    // sessionStorage.setItem('playStatus', JSON.stringify({isPauseStatus: true}));
                     
-                    const isAuto = sessionStorage.getItem('isAuto');
                     // 如果开启了自动连播
-                    if (isAuto) {
+                    const isAuto = sessionStorage.getItem('isAuto');
+                    if (isAuto && isAuto == "true") {
                         let next = this.getNext(currentId);
                         if (next) {
-
+                            this.SET_IS_LAST(false);
                             // 通知地图页更改当前景点显示信息
                             this.NOTICE_AUTO_PLAY({
                                 isAutoPlay: true,
@@ -110,15 +115,24 @@
                             });
                             
                             sessionStorage.setItem('currentPoint',JSON.stringify(next.nextPoint));
-                            this.AUTO_PALY(); // 同步通知景点列表更改状态--假如景点列表当前未打开?待测试
+                            // this.AUTO_PALY(); // 同步通知景点列表更改状态--假如景点列表当前未打开?待测试
                             this.START_PLAY({
                                 src: next.nextPlay.aSrc,
                                 id: next.nextPlay.aId
                             });
+                        }else{
+                            this.SET_IS_LAST(true);
                         }
                     }
                 }
             },
+            // 监听路由 回退到home页 则停止播放
+            '$route'(to, from) {
+                if (to.path === '/' && from.name && document.querySelector('.main-audio')) {
+                    this.CLEAR_CURRENT_INTERVAL();
+                    document.querySelector('.main-audio').pause();
+                }
+            }
         },
         methods: {
             ...mapMutations([
@@ -127,12 +141,14 @@
                 'CLEAR_CURRENT_INTERVAL',
                 'NOTICE_STOP',
                 'NOTICE_AUTO_PLAY',
-                'AUTO_PALY',
-                'SET_HAS_GET_TOTAL'
+                // 'AUTO_PALY',
+                'SET_HAS_GET_TOTAL',
+                'SET_IS_LAST'
             ]),
             // 播放进度
             changeProgress() {
                 this.timer = setInterval(() => {
+                    this.totalTime = this.totalTime || sessionStorage.getItem("totalTime");
                     let currentTime = document.querySelector('.main-audio').currentTime;
                     this.audioPercent = currentTime / this.totalTime * 100;
                     console.log('播放进度：' + currentTime / this.totalTime * 100 + '%');
@@ -155,6 +171,15 @@
                     }
                 }
             },
+            async countPlayTimes(sid, pid) {
+                const increaseTimes = await this.$http.get(this.$base + '/app/sys/playerVoice',{
+                    sceneryId: parseInt(sid),
+                    resourceId: parseInt(pid)
+                });
+                if (!increaseTimes) {
+                    return;
+                }
+            }
         }
     }
 </script>
