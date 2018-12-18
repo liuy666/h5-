@@ -105,7 +105,7 @@ export default {
             const mobile = this.registerForm.mobile
             if (!this.validatePhone(mobile)) return
             this.registerFormList[1].disabled = true
-            const res = await this.$http.get(`${this.$base}/hqyatu-navigator/message/sys/sendVerification?mobile=${mobile}`)
+            const res = await this.$http.get(`${this.$base}/message/sys/sendVerification?mobile=${mobile}`)
             if (res) this.setTime()
         },
         setTime () {
@@ -150,7 +150,7 @@ export default {
                 return
             }
             this.btnDisabled = true
-            const { data } = await this.$axios.post(`${this.$base}/hqyatu-navigator/app/register`, form)
+            const { data } = await this.$axios.post(`${this.$base}/app/register`, form)
             if (data.code === 0) {
                 this.toast = {
                     show: true,

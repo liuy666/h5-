@@ -9,9 +9,9 @@ import Cookies from 'js-cookie';
 import '@/styles/baseStyle.css';
 import '@/styles/globalStyle.less';
 
-
 // 引入工具类js
 import QS from 'qs';
+import axios from 'axios'
 import utils from '@/libs/utils.js';
 import https from '@/libs/http.js';
 import $crypto from '@/libs/crypto.js';
@@ -21,6 +21,7 @@ Vue.config.productionTip = false;
 Vue.prototype.$QS = QS;
 Vue.prototype.$tool = utils;
 Vue.prototype.$http = https;
+Vue.prototype.$axios = axios;
 Vue.prototype.$base = process.env.NODE_ENV === "production" ? '/qcx-navigator' : '/api/qcx-navigator';
 const VueTouch = require('vue-touch');
 Vue.use(VueTouch, { name: 'v-touch' })

@@ -26,7 +26,7 @@ const indexPage = {
                 limit: 6,
                 status: 1
             }
-            const { data } = await axios.get(`${rootState.base}/hqyatu-navigator/app/hqbanner/list`, { params })
+            const { data } = await axios.get(`${rootState.base}/app/hqbanner/list`, { params })
             if (data && data.code === 0) {
                 commit('GET_BANNER_LIST', data.page.list) 
             }
@@ -40,7 +40,7 @@ const indexPage = {
                 limit: 10000,
                 ...hot
             }
-            const { data } = await axios.get(`${rootState.base}/hqyatu-navigator/app/scenery/queryAll`, { params })
+            const { data } = await axios.get(`${rootState.base}/app/scenery/queryAll`, { params })
             if (data && data.code === 0) {
                 const list = data.page.list
                 commit(hot ? 'GET_HOT_LIST' : 'GET_SCENIC_SPOT_LIST', list)

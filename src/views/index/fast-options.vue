@@ -26,7 +26,7 @@
 
 <template>
     <div id="fast-options">
-        <div v-for="(item, index) in optionsList" :key="index" class="img-173-173">
+        <div v-for="(item, index) in optionsList" :key="index" class="img-173-173" @click="getOptions(index)">
             <img :src="item.src" alt="">
             <div>{{ item.title }}</div>
         </div> 
@@ -55,6 +55,31 @@ export default {
                     title: '扫码识景'
                 }
             ]
+        }
+    },
+    methods: {
+        // 调用微信扫一扫
+        wxScanQRCode () {
+            wx.scanQRCode({
+                desc: 'scanQRCode desc',
+                needResult: 0, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
+                scanType: ['qrCode', 'barCode'], // 可以指定扫二维码还是一维码，默认二者都有
+                success: (res) => {
+                    console.log(res)
+                },
+                error: (err) => {
+                    console.log(err)
+                    if (err.errMsg.indexOf('function_not_exist') > 0) {
+                        alert('版本过低请升级')
+                    }
+                }
+            });
+        },
+        getOptions (index) {
+            alert(index)
+            // if (index === 3) {
+            //     this.wxScanQRCode()
+            // }
         }
     }
 }

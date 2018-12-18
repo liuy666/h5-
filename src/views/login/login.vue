@@ -71,7 +71,7 @@ export default {
     },
     methods: {
         async login (form) {
-            const { data } = await this.$axios.post(`${this.$base}/hqyatu-navigator/app/login`, form)
+            const { data } = await this.$axios.post(`${this.$base}/app/login`, form)
             if (data.code === 0) {
                 alert('登录成功！')
             } else {
