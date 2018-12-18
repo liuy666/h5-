@@ -6,21 +6,53 @@ const app = {
         resourceList: [],
         content: '',
         routeName: '',
-        autoPlay: false,
         fromRouteName: '',
         fromRouteName_detail: '',
         lineStatus: '',
         sId: '',
-        currentScenic: null,
         playParams: null, // 播放所需参数，包括景点id和音频src
         percent: 0, // 播放进度百分比
         playStatus: '', // 当前播放状态 -- pause/play
         isStop: false, // 判断当前播放是否结束
         isAutoPlay: false, // 判断是否自动播放下一个
         nextMessage: null, // 下一个播放景点所需信息
-        hasGetTotal: false //是否已经得到总时长
+        hasGetTotal: false, //是否已经得到总时长
+        isLastOne: false,
     },
     mutations: {
+        // 保存初始状态
+        SAVE_STATE(state) {
+             let initState = {
+                lineList: [],
+                resourceList: [],
+                content: '',
+                routeName: '',
+                fromRouteName: '',
+                fromRouteName_detail: '',
+                lineStatus: '',
+                sId: '',
+                playParams: null,
+                percent: 0,
+                playStatus: '',
+                isStop: false,
+                isAutoPlay: false,
+                nextMessage: null,
+                hasGetTotal: false,
+                isLastOne: false
+            }
+            localStorage.setItem('initState', JSON.stringify(initState));
+        },
+        // 初始化vuex
+        INIT_STATE(state) {
+            let initState = JSON.parse(localStorage.getItem('initState'));
+            for (let attr in state) {
+                for (let attr2 in initState) {
+                    if (attr == attr2) {
+                        state[attr] = initState[attr2];
+                    }
+                }
+            }
+        },
         // 保存路线列表
         GET_LINE_LIST(state, list) {
             state.lineList = list;
@@ -56,15 +88,16 @@ const app = {
             state.lineStatus = !state.lineStatus;
         },
         // 监听自动播
-        AUTO_PALY(state) {
-            state.autoPlay = !state.autoPlay;
-        },
+        // AUTO_PALY(state) {
+        //     state.autoPlay = !state.autoPlay;
+        // },
         SET_SCENIC_ID(state, val) {
             state.sId = val;
         },
-        SET_CURRENT_SCENIC(state, val) {
-            state.currentScenic = val;
-        },
+        // 保存当前景区信息
+        // SET_CURRENT_SCENIC(state, val) {
+        //     state.currentScenic = val;
+        // },
 
 
 
@@ -96,19 +129,24 @@ const app = {
         },
         SET_HAS_GET_TOTAL(state, hasGetTotal) {
             state.hasGetTotal = hasGetTotal;
+        },
+        SET_IS_LAST(state, isLastOne) {
+            state.isLastOne = isLastOne;
         }
     },
     actions: {
         async getLineList({ commit }, { _this, sceneryId }) {
             _this.isShowLoading = true;
             console.log(vm)
-            const lineList = await vm.$http.get(vm.$base + '/hqyatu-navigator/app/line/getLineList', {
+            const lineList = await vm.$http.get(vm.$base + '/app/line/getLineList', {
                 sceneryId
             });
             console.log(lineList);
 
-            if (!lineList) {
+            if (!lineList || !lineList.page || !lineList.page.list || !lineList.page.list.length) {
                 _this.isShowLoading = false;
+                _this.tipsText1 = "请求失败";
+                _this.isTips1 = true;
                 return;
             }
             commit('GET_LINE_LIST', lineList.page.list);

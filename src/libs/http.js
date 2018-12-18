@@ -40,6 +40,26 @@ function checkCode(res) {
 	}
 }
 
+function checkCodeForPost(res) {
+	// console.log('------ 检查 Code 信息码 ------');
+	console.log(res);
+	if (res.status === 200) {
+		if (res.data.code === 0) {
+			// console.log('**** 这里是数据 ****');
+			return {
+				status: true,
+				data: res.data
+			};
+		} else {
+			// console.log('错误信息:\ncode:' + res.data.code + '\nmsg:' + res.data.msg);
+			return {
+				status: false,
+				data: res.data
+			};
+		}
+	}
+}
+
 /**
  * 单一请求--检查http状态码
  * @param {object} err -- 请求异常后返回的数据对象
@@ -127,7 +147,7 @@ export default {
 				'Content-Type': contentType || 'application/json'
 			}
 		})
-		.then(checkCode)
+		.then(checkCodeForPost)
 		.catch(checkStatus);
 	},
 	put(url, urlParams, bodyParams) {

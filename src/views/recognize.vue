@@ -52,7 +52,7 @@
             border-radius: 20px;
             width: 690px;
             height: 866px;
-            margin: 31px auto 78px;
+            margin: 31px auto 58px;
         }
         .camera-wraper {
             display: flex;
@@ -154,9 +154,8 @@ export default {
             if (imgType === 'image/png' || imgType === 'image/jpeg') {
                 const formData = new FormData();
                 formData.append('image_file', file);
-                const res = await this.$http.post(this.$base + '/hqyatu-navigator/app/img/recognition', formData, 'multipart/form-data');
-
-                if (!res) {
+                const res = await this.$http.post(this.$base + '/app/img/recognition', formData, 'multipart/form-data');
+                if (!res.status) {
                     this.isShowLoading = false;
                     changeEvent.target.value = '';
                     this.tipsText1 = '请求失败';
@@ -165,7 +164,7 @@ export default {
                 }
 
                 this.isShowLoading = false;
-                let descOrder = res.response.identify_results.sort((a, b) => b.probability - a.probability);
+                let descOrder = res.data.response.identify_results.sort((a, b) => b.probability - a.probability);
                 if (descOrder[0].probability.toFixed(2) > 0.7) {
                     this.tipsText2 = '识别成功';
                     this.isTips2 = true;
@@ -173,7 +172,10 @@ export default {
                         this.$router.push({
                             name: 'recognize-detail',
                             params: {
-                                src: descOrder[0].detail_url
+                                //src: descOrder[0].detail_url
+                                name: descOrder[0].name,
+                                img: descOrder[0].reference_url,
+                                desc: descOrder[0].desc
                             }
                         });
                     }, 2000);

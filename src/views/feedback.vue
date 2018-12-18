@@ -201,7 +201,7 @@
 <template>
     <div id="feedback">
         <section class="wrapper-textarea-200">
-            <textarea v-model.trim="textareaValue" placeholder="请描述你遇到的问题！" class="textarea-200" rows="4" @input="inputWord"></textarea>
+            <textarea v-model.trim="textareaValue" placeholder="请描述你遇到的问题！" class="textarea-200" rows="4" @input="inputWord" @keydown="addSix(1, $event)"></textarea>
             <span><i>{{ entered }}</i>/200</span>
         </section>
         <section class="title-263-29">
@@ -215,11 +215,11 @@
         <form>
             <div>
                 <span>姓名</span>
-                <input v-model.trim="yourName" type="text" placeholder="请留下您的姓名" class="border-bottom-1" />
+                <input v-model.trim="yourName" type="text" placeholder="请留下您的姓名" class="border-bottom-1" @keydown="addSix(2, $event)" />
             </div>
             <div>
                 <span>电话号码</span>
-                <input v-model.trim="yourTel" type="number" placeholder="请留下您的电话号码" @input="validateTel" @blur="validateLength" class="border-bottom-1"/>
+                <input v-model.trim="yourTel" type="number" placeholder="请留下您的电话号码" @input="validateTel" @blur="validateLength" class="border-bottom-1" @keydown="addSix(3, $event)"/>
             </div>
             <v-touch tag="button" type="button" class="submit-upload" @tap="handleSubmit">提交反馈</v-touch>
         </form>
@@ -272,6 +272,22 @@ export default {
         })
     },
     methods: {
+        addSix(index, e) {
+            // 针对iOS不能输入6的骚操作
+            if (this.$tool.validateReg.isiOS(window.navigator.userAgent)) {
+                if (e.keyCode === 54) {
+                    if (index === 1) {
+                        this.textareaValue = this.textareaValue + '6';
+                    }
+                    if (index === 2) {
+                        this.yourName = this.yourName + '6';
+                    }
+                    if (index === 3) {
+                        this.yourTel = this.yourTel + '6';
+                    }
+                }
+            }            
+        },
         ...mapMutations([
             'SET_FROM_ROUTE_NAME',
         ]),
@@ -285,8 +301,8 @@ export default {
                 this.isShowLoading2 = true;
                 const formData = new FormData();
                 formData.append('file', file);
-                const res = await this.$http.post(this.$base + '/hqyatu-navigator/app/oss/upload', formData, 'multipart/form-data');
-                if (!res) {
+                const res = await this.$http.post(this.$base + '/app/oss/upload', formData, 'multipart/form-data');
+                if (!res.status) {
                     this.isShowLoading2 = false;
                     this.tipsText1 = '上传失败';
                     this.isTips1 = true;
@@ -305,7 +321,7 @@ export default {
                 imgDom.style.width = '100%';
                 imgDom.style.height = '100%';
                 imgDom.style.borderRadius = '8.3%';
-                sectionDom.dataset.imgId = res.ossEntity.id;
+                sectionDom.dataset.imgId = res.data.ossEntity.id;
                 sectionDom.classList.add('upload-120-120-base', 'upload-hasImage');
 
                 // 给关闭按钮添加点击关闭事件
@@ -318,8 +334,9 @@ export default {
                         this.isShowLoading = true;
                         // 获取当前事件源的图片id
                         const _ID = parentNode.dataset.imgId;
-                        const del = await this.$http.post(this.$base + '/hqyatu-navigator/app/oss/delete', [_ID]);
-                        if (!del) {
+                        const del = await this.$http.post(this.$base + '/app/oss/delete', [_ID]);
+                        console.log(del);
+                        if (!del.status) {
                             this.isShowLoading = false;
                             this.tipsText1 = '删除失败';
                             this.isTips1 = true;
@@ -348,7 +365,7 @@ export default {
                     imgDom.src = loadEvent.target.result;
                     imgDom.file = file;
                     this.uploadImageList.push({
-                        id: res.ossEntity.id,
+                        id: res.data.ossEntity.id,
                         url: loadEvent.target.result
                     });
                     sectionDom.appendChild(imgDom);
@@ -378,6 +395,7 @@ export default {
         // 验证电话号码格式是否正确
         validateTel(e) {
             // console(e.keyCode)
+            this.yourTel = this.yourTel.replace(/[^0-9-]+/,'');
             if (this.yourTel.length >= 11) {
                 if (!this.$tool.validateReg.phoneNumber(Number(this.yourTel))) {
                     this.tipsText3 = '电话号码错了~';
@@ -401,6 +419,17 @@ export default {
         },
         // 提交反馈
         async handleSubmit(e) {
+            if (!this.$tool.validateReg.phoneNumber(Number(this.yourTel))) {
+                this.tipsText3 = '电话号码错了~';
+                this.isTips3 = true;
+                this.yourTel = this.yourTel.slice(0, 11);
+                return;
+            }
+            if (this.yourTel.length < 11) {
+                this.tipsText3 = '电话号码错了~';
+                this.isTips3 = true;
+                return;
+            }
             if (!this.textareaValue || !this.yourName || !this.isCorrent) {
                 this.tipsText3 = '请填写完整反馈信息~';
                 this.isTips3 = true;
@@ -425,11 +454,12 @@ export default {
                     sceneryId: this.sId,
                     ...imgList
                 }
-                const submitFeedback = await this.$http.post(this.$base + '/hqyatu-navigator/app/sys/saveSuggestion', bodyParams);
-                if (!submitFeedback) {
+                const submitFeedback = await this.$http.post(this.$base + '/app/sys/saveSuggestion', bodyParams);
+                console.log(submitFeedback)
+                if (!submitFeedback.status) {
                     this.isShowLoading = false;
-                    this.tipsText1 = '提交失败';
-                    this.isTips1 = true;
+                    this.tipsText3 = submitFeedback.data.msg;
+                    this.isTips3 = true;
                     return;
                 }
                 this.isShowLoading = false;
