@@ -10,8 +10,8 @@
         <search-input></search-input>
         <three-d-swiper ref="threeDSwiper" :banner-list="bannerList"></three-d-swiper>
         <fast-options></fast-options>
-        <season-hot :hot-list="hotList"></season-hot>
-        <all-scenic-spot :scenic-spot-list="scenicSpotList"></all-scenic-spot>
+        <season-hot :hot-list="hotList" @goScenicMap="goScenicMap"></season-hot>
+        <all-scenic-spot :scenic-spot-list="scenicSpotList" @goScenicMap="goScenicMap" ></all-scenic-spot>
         <footer-nav></footer-nav>
     </div>
 </template>
@@ -79,6 +79,23 @@ export default {
                     'scanQRCode', // 微信扫一扫
                 ] 
             });
+        },
+        goScenicMap (scenicInfo) {
+            // 清理音频
+            if (document.querySelector('.main-audio')) {
+                document.querySelector('#app').removeChild(document.querySelector('.main-audio'));
+            }
+
+            this.$store.commit('INIT_STATE');
+
+            // 清空所有缓存
+            sessionStorage.clear();
+
+            sessionStorage.setItem('currentScenic',JSON.stringify(scenicInfo));
+            document.querySelector('#name').text = scenicInfo.name;
+            this.$router.push({
+                path : '/main'
+            })
         }
     },
     async created () {

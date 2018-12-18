@@ -20,7 +20,7 @@ router.beforeEach((to, from, next) => {
     console.log('***from-to***')
 
     // 从home页进入main页或在main页刷新
-    if ((!from.name || from.name === 'index') && to.name === 'main') {
+    if ((!from.name || from.name === 'indexpage') && to.name === 'main') {
         console.log('SET_FROM_ROUTE_NAME => root')
         vuex.commit('SET_FROM_ROUTE_NAME', 'root');
     }

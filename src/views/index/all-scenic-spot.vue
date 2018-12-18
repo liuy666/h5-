@@ -156,7 +156,8 @@
             :key="index" 
             :class="index%5 ? 'small-img' : 'big-img'" 
             class="scenic-spot"
-            :style="{backgroundImage: `url(${index%5 ? '' : item.accessCoverUrl})`, backgroundSize:'100% 100%'}">
+            :style="{backgroundImage: `url(${index%5 ? '' : item.accessCoverUrl})`, backgroundSize:'100% 100%'}"
+            @click="goScenic(item)">
             <template v-if="index%5 === 0">
                 <div class="speak-point">
                     <div class="img-24-24">
@@ -218,6 +219,11 @@ export default {
             default: () => {
                 return []
             }
+        }
+    },
+    methods : {
+        goScenic (scenicInfo) { 
+            this.$emit('goScenicMap',scenicInfo);
         }
     }
 }

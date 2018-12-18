@@ -57,7 +57,7 @@
     <div id="season-hot">
         <div class="title">当季热门</div>
         <div class="hot-img">
-            <div v-for="(item, index) in hotList" :key="index" class="img-290-160" >
+            <div v-for="(item, index) in hotList" :key="index" class="img-290-160" @click="goScenic(item)" >
                 <img :src="item.accessCoverUrl" alt="">
                 <div>{{ item.name }}</div>
             </div>
@@ -73,6 +73,11 @@ export default {
             default: () => {
                 return []
             }
+        }
+    },
+    methods : {
+        goScenic (scenicInfo) { 
+            this.$emit('goScenicMap',scenicInfo);
         }
     }
 }
