@@ -1,5 +1,5 @@
 module.exports = {
-    baseUrl: process.env.NODE_ENV === "production" ? '' : 'dev',
+    baseUrl: process.env.NODE_ENV === "production" ? '' : 'api',
     configureWebpack: config => {
         require('vux-loader').merge(config, {
             options: {},

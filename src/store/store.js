@@ -7,10 +7,16 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
 	state: {
-        base: process.env.NODE_ENV === "production" ? '/' : '/api'
+        toast: {
+            value: false,
+            type: 'cancel',
+            text: ''
+        }
 	},
 	mutations: {
-
+        SHOW_TOAST (state, toast) {
+            state.toast = toast
+        }
 	},
 	actions: {
 

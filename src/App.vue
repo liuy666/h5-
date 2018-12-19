@@ -1,6 +1,7 @@
 <template>
     <div id="app">
         <router-view />
+        <toast v-model="toast.value" :type="toast.type" :is-show-mask="true">{{ toast.text }}</toast>
     </div>
 </template>
 
@@ -11,8 +12,12 @@
 </style>
 
 <script>
+    import { Toast } from 'vux'
     import { mapMutations, mapState } from 'vuex';
     export default {
+        components: {
+            Toast
+        },
         data() {
             return {
                 timer: '', // 音频的播放定时器
@@ -23,7 +28,8 @@
         computed: {
             ...mapState({
                 playParams: state => state.app.playParams,
-                playStatus: state => state.app.playStatus
+                playStatus: state => state.app.playStatus,
+                toast: state => state.toast
             })
         },
         watch: {

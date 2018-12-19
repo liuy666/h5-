@@ -11,9 +11,9 @@ import '@/styles/globalStyle.less';
 
 // 引入工具类js
 import QS from 'qs';
-import axios from 'axios'
 import utils from '@/libs/utils.js';
 import https from '@/libs/http.js';
+import axios from '@/libs/request.js';
 
 Vue.config.productionTip = false;
 Vue.prototype.$QS = QS;
