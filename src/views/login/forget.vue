@@ -10,8 +10,7 @@
     <div id="forget">
         <login-form 
             :login-form-list="forgetFormList" 
-            :login-form="forgetForm" 
-            :toast="toast"
+            :login-form="forgetForm"
             :need-btn="false"
             @sendVerifyCode="sendVerifyCode">
         </login-form>
@@ -44,12 +43,7 @@ export default {
                     maxlength: 6,
                     disabled: false
                 },
-            ],
-            toast: {
-                show: false,
-                type: '',
-                span: ''
-            }
+            ]
         }
     },
     methods: {
@@ -58,8 +52,8 @@ export default {
             const mobile = this.forgetForm.mobile
             if (!this.validatePhone(mobile)) return
             this.forgetFormList[1].disabled = true
-            const res = await this.$http.get(`${this.$base}/message/sys/sendVerification?mobile=${mobile}`)
-            if (res) this.setTime()
+            const data = await this.$axios.get(`/message/sys/sendVerification?mobile=${mobile}`)
+            if (data) this.setTime()
         },
         setTime () {
             if (!this.seconds) {
@@ -77,18 +71,16 @@ export default {
         validatePhone (phone) {
             const { phoneNumber } = this.$tool.validateReg
             if (!phone) {
-                this.toast = {
-                    show: true,
-                    span: '请先输入手机号',
-                    type: 'cancel'
-                }
+                this.$store.commit('SHOW_TOAST', {
+                    value: true,
+                    text: '请先输入手机号',
+                })
                 return false
             } else if (!phoneNumber(phone)) {
-                this.toast = {
-                    show: true,
-                    span: '手机号格式有误',
-                    type: 'cancel'
-                }
+                this.$store.commit('SHOW_TOAST', {
+                    value: true,
+                    text: '手机号格式有误',
+                })
                 return false
             }
             return true
@@ -98,7 +90,7 @@ export default {
         async 'forgetForm.verifyCode' (val) {
             if (val.length === 6) {
                 const params = this.forgetForm
-                const { data } = await this.$axios.get(`${this.$base}/message/sys/validMessageCode`, { params })
+                const data = await this.$axios.get('/message/sys/validMessageCode', params)
                 if (data.code === 0) {
                     this.$router.push({
                         path: '/reset',
@@ -107,11 +99,10 @@ export default {
                         }
                     })
                 } else {
-                    this.toast = { 
-                        show: true,
-                        span: data.msg,
-                        type: 'cancel'
-                    }
+                    this.$store.commit('SHOW_TOAST', {
+                        value: true,
+                        text: data.msg,
+                    })
                 }
             }
         }

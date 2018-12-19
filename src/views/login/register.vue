@@ -43,7 +43,6 @@
             :login-form="registerForm"
             :btn-disabled="btnDisabled" 
             :btn-label="btnLabel"
-            :toast="toast"
             @sendVerifyCode="sendVerifyCode" 
             @formSubmit="register">
         </login-form>
@@ -91,12 +90,7 @@ export default {
             btnDisabled: false,
             btnLabel: '注册',
             isAgree: true,
-            seconds: 60,
-            toast: {
-                show: false,
-                type: '',
-                span: ''
-            }
+            seconds: 60
         }
     },
     methods: {
@@ -105,8 +99,8 @@ export default {
             const mobile = this.registerForm.mobile
             if (!this.validatePhone(mobile)) return
             this.registerFormList[1].disabled = true
-            const res = await this.$http.get(`${this.$base}/message/sys/sendVerification?mobile=${mobile}`)
-            if (res) this.setTime()
+            const data = await this.$axios.get(`/message/sys/sendVerification?mobile=${mobile}`)
+            if (data) this.setTime()
         },
         setTime () {
             if (!this.seconds) {
@@ -142,28 +136,26 @@ export default {
         },
         async register (form) {
             if (!this.isAgree) {
-                this.toast = {
-                    show: true,
-                    span: '请先同意协议',
-                    type: 'cancel'
-                }
+                this.$store.commit('SHOW_TOAST', {
+                    value: true,
+                    text: '请先同意协议'
+                })
                 return
             }
             this.btnDisabled = true
-            const { data } = await this.$axios.post(`${this.$base}/app/register`, form)
+            const data = await this.$axios.post('/app/register', form)
             if (data.code === 0) {
-                this.toast = {
-                    show: true,
-                    span: '注册成功',
+                this.$store.commit('SHOW_TOAST', {
+                    value: true,
+                    text: '注册成功',
                     type: 'success'
-                }
+                })
                 this.btnDisabled = false
             } else {
-                this.toast = {
-                    show: true,
-                    span: data.msg,
-                    type: 'cancel'
-                }
+                this.$store.commit('SHOW_TOAST', {
+                    value: true,
+                    text: data.msg,
+                })
                 this.btnDisabled = false
             }
         }

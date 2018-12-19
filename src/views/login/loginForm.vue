@@ -78,16 +78,15 @@
         <div v-if="needBtn" class="login-form-btn">
             <x-button type="primary" :disabled="btnDisabled" @click.native="formSubmit(loginForm)">{{ btnLabel }}</x-button>
         </div>
-        <toast v-model="toast.show" :type="toast.type" :is-show-mask="true">{{ toast.span }}</toast>
+        <!-- <toast v-model="toast.show" :type="toast.type" :is-show-mask="true">{{ toast.span }}</toast> -->
     </div>
 </template>
 
 <script>
-import { XButton, Toast } from 'vux'
+import { XButton } from 'vux'
 export default {
     components: {
-        XButton,
-        Toast
+        XButton
     },
     props: {
         loginFormList: {
@@ -115,12 +114,6 @@ export default {
         btnDisabled: {
             type: Boolean,
             default: false
-        },
-        toast: {
-            type: Object,
-            default: () => {
-                return {}
-            }
         }
     },
     methods: {

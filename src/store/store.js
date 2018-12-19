@@ -15,7 +15,7 @@ export default new Vuex.Store({
 	},
 	mutations: {
         SHOW_TOAST (state, toast) {
-            state.toast = toast
+            Object.assign(state.toast, toast)
         }
 	},
 	actions: {

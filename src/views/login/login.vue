@@ -26,8 +26,7 @@
         </div>
         <login-form 
             :login-form-list="loginFormList" 
-            :login-form="loginForm" 
-            :toast="toast" 
+            :login-form="loginForm"
             @formSubmit="login">
         </login-form>
         <div class="two-options">
@@ -61,25 +60,19 @@ export default {
                     type: 'password',
                     key: 'password'
                 }
-            ],
-            toast: {
-                show: false,
-                type: '',
-                span: ''
-            }
+            ]
         }
     },
     methods: {
         async login (form) {
-            const { data } = await this.$axios.post(`${this.$base}/app/login`, form)
+            const data = await this.$axios.post(`/app/login`, form)
             if (data.code === 0) {
                 alert('登录成功！')
             } else {
-                this.toast = {
-                    show: true,
-                    type: 'cancel',
-                    span: data.msg
-                }
+                this.$store.commit('SHOW_TOAST', {
+                    value: true,
+                    text: data.msg
+                })
             }
         },
         goToRegister () {

@@ -55,26 +55,24 @@ export default {
     methods: {
         async updatePassword (form) {
             if (form.password !== form.newPassword) {
-                this.toast = {
-                    show: true,
-                    type: 'cancel',
-                    span: '两次密码输入不一致'
-                }
+                this.$store.commit('SHOW_TOAST', {
+                    value: true,
+                    text: '两次密码输入不一致',
+                })
                 return
             }
-            const { data } = await this.$axios.post(`${this.$base}/app/updatePwd`, form)
+            const data = await this.$axios.post('/app/updatePwd', form)
             if (data.code === 0) {
-                this.toast = {
-                    show: true,
+                this.$store.commit('SHOW_TOAST', {
+                    value: true,
+                    text: '修改成功',
                     type: 'success',
-                    span: '修改成功'
-                }
+                })
             } else {
-                this.toast = {
-                    show: true,
-                    type: 'cancel',
-                    span: data.msg
-                }
+                this.$store.commit('SHOW_TOAST', {
+                    value: true,
+                    text: data.msg
+                })
             }
         }
     },

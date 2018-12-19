@@ -28,7 +28,6 @@ function checkCode ({ data }) {
     if (data.code) {   // 后台接口code码返回0为正常，故此对错误统一处理
         store.commit('SHOW_TOAST', {
             value: true,
-            type: 'cancel',
             text: data.msg
         })
     }
@@ -40,6 +39,6 @@ export default {
         return instance.get(url, { params }).then(checkStatus).then(res => checkCode(res))
     },
     post (url, params) {
-        return instance.get(url, params).then(checkStatus).then(res => checkCode(res))
+        return instance.post(url, params).then(checkStatus).then(res => checkCode(res))
     }
 }
