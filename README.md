@@ -1,4 +1,4 @@
-# daolan
+# 青川导游助手平台版
 
 ## Project setup
 ```
@@ -23,10 +23,4 @@ npm run test
 ### Lints and fixes files
 ```
 npm run lint
-```
-
-### 导游导览微信公众号9999
-```
-
-hellow world
 ```
